@@ -310,7 +310,11 @@ namespace NzbDrone.Core.Download.Clients.QBittorrent
 
                 if (version >= new Version("2.6.1") && item.Status == DownloadItemStatus.Completed)
                 {
-                    if (torrent.ContentPath != torrent.SavePath)
+                    if (torrent.RootPath != "" && torrent.RootPath != torrent.SavePath)
+                    {
+                        item.OutputPath = _remotePathMappingService.RemapRemoteToLocal(Settings.Host, new OsPath(torrent.RootPath));
+                    }
+                    else if (torrent.ContentPath != torrent.SavePath)
                     {
                         item.OutputPath = _remotePathMappingService.RemapRemoteToLocal(Settings.Host, new OsPath(torrent.ContentPath));
                     }

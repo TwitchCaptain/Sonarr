@@ -24,6 +24,9 @@ namespace NzbDrone.Core.Download.Clients.QBittorrent
         [JsonProperty(PropertyName = "save_path")]
         public string SavePath { get; set; } // Torrent save path
 
+        [JsonProperty(PropertyName = "root_path")]
+        public string RootPath { get; set; } // Torrent root path
+
         [JsonProperty(PropertyName = "content_path")]
         public string ContentPath { get; set; } // Torrent save path
 
