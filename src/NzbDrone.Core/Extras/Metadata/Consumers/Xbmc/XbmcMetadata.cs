@@ -137,8 +137,13 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
             return null;
         }
 
-        public override MetadataFileResult SeriesMetadata(Series series)
+        public override MetadataFileResult SeriesMetadata(Series series, SeriesMetadataReason reason)
         {
+            if (reason == SeriesMetadataReason.EpisodesImported)
+            {
+                return null;
+            }
+
             var xmlResult = string.Empty;
 
             if (Settings.SeriesMetadata)
@@ -174,6 +179,20 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
                         var imdbId = new XElement("uniqueid", series.ImdbId);
                         imdbId.SetAttributeValue("type", "imdb");
                         tvShow.Add(imdbId);
+                    }
+
+                    if (series.TmdbId > 0)
+                    {
+                        var tmdbId = new XElement("uniqueid", series.TmdbId);
+                        tmdbId.SetAttributeValue("type", "tmdb");
+                        tvShow.Add(tmdbId);
+                    }
+
+                    if (series.TvMazeId > 0)
+                    {
+                        var tvMazeId = new XElement("uniqueid", series.TvMazeId);
+                        tvMazeId.SetAttributeValue("type", "tvmaze");
+                        tvShow.Add(tvMazeId);
                     }
 
                     foreach (var genre in series.Genres)
@@ -402,7 +421,15 @@ namespace NzbDrone.Core.Extras.Metadata.Consumers.Xbmc
 
             try
             {
-                var screenshot = episodeFile.Episodes.Value.First().Images.SingleOrDefault(i => i.CoverType == MediaCoverTypes.Screenshot);
+                var firstEpisode = episodeFile.Episodes.Value.FirstOrDefault();
+
+                if (firstEpisode == null)
+                {
+                    _logger.Debug("Episode file has no associated episodes, potentially a duplicate file");
+                    return new List<ImageFileResult>();
+                }
+
+                var screenshot = firstEpisode.Images.SingleOrDefault(i => i.CoverType == MediaCoverTypes.Screenshot);
 
                 if (screenshot == null)
                 {

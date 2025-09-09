@@ -17,6 +17,7 @@ namespace NzbDrone.Core.Tv
         List<Series> AddSeries(List<Series> newSeries);
         Series FindByTvdbId(int tvdbId);
         Series FindByTvRageId(int tvRageId);
+        Series FindByImdbId(string imdbId);
         Series FindByTitle(string title);
         Series FindByTitle(string title, int year);
         Series FindByTitleInexact(string title);
@@ -92,6 +93,11 @@ namespace NzbDrone.Core.Tv
         public Series FindByTvRageId(int tvRageId)
         {
             return _seriesRepository.FindByTvRageId(tvRageId);
+        }
+
+        public Series FindByImdbId(string imdbId)
+        {
+            return _seriesRepository.FindByImdbId(imdbId);
         }
 
         public Series FindByTitle(string title)
@@ -245,6 +251,7 @@ namespace NzbDrone.Core.Tv
 
             _seriesRepository.UpdateMany(series);
             _logger.Debug("{0} series updated", series.Count);
+            _eventAggregator.PublishEvent(new SeriesBulkEditedEvent(series));
 
             return series;
         }
@@ -291,6 +298,8 @@ namespace NzbDrone.Core.Tv
 
                 return true;
             }
+
+            _logger.Debug("Tags not updated for '{0}'", series.Title);
 
             return false;
         }

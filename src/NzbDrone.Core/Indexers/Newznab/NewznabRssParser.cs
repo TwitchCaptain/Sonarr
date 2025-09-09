@@ -90,6 +90,8 @@ namespace NzbDrone.Core.Indexers.Newznab
 
             releaseInfo.TvdbId = GetTvdbId(item);
             releaseInfo.TvRageId = GetTvRageId(item);
+            releaseInfo.ImdbId = GetImdbId(item);
+            releaseInfo.IndexerFlags = GetFlags(item);
 
             return releaseInfo;
         }
@@ -180,6 +182,35 @@ namespace NzbDrone.Core.Indexers.Newznab
             }
 
             return 0;
+        }
+
+        protected virtual string GetImdbId(XElement item)
+        {
+            var imdbIdString = TryGetNewznabAttribute(item, "imdb");
+
+            if (!imdbIdString.IsNullOrWhiteSpace() && int.TryParse(imdbIdString, out var imdbId) && imdbId > 0)
+            {
+                return $"tt{imdbId:D7}";
+            }
+
+            return null;
+        }
+
+        protected IndexerFlags GetFlags(XElement item)
+        {
+            IndexerFlags flags = 0;
+
+            if (TryGetNewznabAttribute(item, "prematch") == "1" || TryGetNewznabAttribute(item, "haspretime") == "1")
+            {
+                flags |= IndexerFlags.Scene;
+            }
+
+            if (TryGetNewznabAttribute(item, "nuked") == "1")
+            {
+                flags |= IndexerFlags.Nuked;
+            }
+
+            return flags;
         }
 
         protected string TryGetNewznabAttribute(XElement item, string key, string defaultValue = "")
